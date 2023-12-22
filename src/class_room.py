@@ -67,26 +67,14 @@ class Room:
             new_corners = np.array(new_corners)
 
         elif shape == "random":
-            seed = config["seed"]
-            np.random.seed(seed)
+            # seed = config["seed"]
+            # np.random.seed(seed)
             min_interval, max_interval = config["roughness"]
             n_max = int((x_max - x_min) // min_interval - 1)
             x_rand = np.random.rand(n_max) * (max_interval - min_interval) + min_interval
             x_rand = x_max - np.cumsum(x_rand)
             x_rand = x_rand[x_rand >= x_min + min_interval]
             y_rand = np.random.rand(len(x_rand)) * max_interval * 0.5
-
-            x_hole = -3
-            # x_holeを跨いでいるx_randのindexを取得
-            print(np.where(x_rand < x_hole))
-            idx = np.where(x_rand < x_hole)[0][0]
-            print(idx, x_rand[idx], y_rand[idx])
-
-            x_add = np.array([x_hole + 0.1, x_hole + 1, x_hole - 1, x_hole - 0.1])
-            y_add = np.array([0.2, -0.5, -0.4, 0.2])
-            x_rand = np.hstack([x_rand[:idx], x_add, x_rand[idx:]])
-            y_rand = np.hstack([y_rand[:idx], y_add, y_rand[idx:]])
-
             new_corners = np.vstack([x_rand, y_rand]).T
 
         new_corners = np.vstack([corners, new_corners])
@@ -111,13 +99,13 @@ class Room:
             room.add_microphone_array(pra.MicrophoneArray(mic_positions, self.fs))
 
     def place_source(self, voice, drone, ambient=None):
-        for signal, position in zip(voice.source, voice.positions):
+        for signal, position in zip(voice.signals, voice.positions):
             self.rooms["source"].add_source(position, signal=signal)
-        for signal, position in zip(drone.source, drone.positions):
+        for signal, position in zip(drone.signals, drone.positions):
             for room_name in ["source", "ncm_rev", "ncm_dir"]:
                 self.rooms[room_name].add_source(position, signal=signal)
         if ambient is not None:
-            for signal, position in zip(ambient.source, ambient.positions):
+            for signal, position in zip(ambient.signals, ambient.positions):
                 self.rooms["source"].add_source(position, signal=signal)
 
     def simulate(self, output_dir):

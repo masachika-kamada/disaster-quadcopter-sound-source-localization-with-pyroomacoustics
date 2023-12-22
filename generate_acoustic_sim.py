@@ -1,13 +1,28 @@
-import os
 import itertools
+import math
+import os
+
 from src.class_room import Room
-from src.class_sound import Ambient, Drone, Voice
+from src.class_sound import Ambient, AudioLoader, Drone, Voice
 from src.file_io import load_config, write_signal_to_npz
 from src.snr import adjust_snr
 
 
+def export_ans(mic_center, sound_positions):
+    print(f"mic_center: {mic_center}")
+    print(f"sound_positions: {sound_positions}")
+    ans = []
+    for position in sound_positions:
+        dx = position[0] - mic_center[0]
+        dy = position[1] - mic_center[1]
+        ans.append(math.atan2(dy, dx))
+    print(f"ans: {ans}")
+    return ans
+
+
 def main(config, output_dir):
     room = Room(config["pra"])
+    AudioLoader.initialize_x_positions_pool(room)
     voice = Voice(config["voice"], config["n_voice"], fs=room.fs, room=room)
     drone = Drone(config["drone"], 4, fs=room.fs)
     if config["n_ambient"] != 0:
@@ -32,6 +47,9 @@ def main(config, output_dir):
         signal = signal[:, start:end]
         # signalがint16でオーバーフローするのでnpzで保存する
         write_signal_to_npz(signal, f"{output_dir}/{name}.npz", room.fs)
+
+    sound_positions = voice.positions if ambient is None else voice.positions + ambient.positions
+    export_ans(room.rooms["source"].mic_array.center, sound_positions)
 
 
 def update_config(
@@ -67,8 +85,8 @@ if __name__ == "__main__":
     heights = [2]
     roughnesses = [[0.1, 1.0]]
     materials = ["brickwork"]
-    n_voices = [1, 2]
-    n_ambients = [0]
+    n_voices = [2]
+    n_ambients = [1]
     snr_egos = [0]
     snr_ambients = [0]
     seeds = [0]
