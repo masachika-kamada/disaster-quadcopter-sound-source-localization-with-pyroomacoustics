@@ -1,0 +1,24 @@
+{
+    "name": "audio2",
+    "build": {
+        "context": "..",
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "ms-python.python",
+                "garytyler.darcula-pycharm",
+                "mhutchie.git-graph",
+                "github.copilot",
+                "visualstudioexptteam.vscodeintellicode",
+                "magicstack.magicpython",
+                "christian-kohler.path-intellisense",
+                "shardulm94.trailing-spaces",
+                "eamodio.gitlens",
+                "ms-toolsai.jupyter"
+            ]
+        }
+    }
+}

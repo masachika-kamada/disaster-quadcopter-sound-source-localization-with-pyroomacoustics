@@ -1,0 +1,4 @@
+__pycache__/
+.vscode/
+experiments/*
+!experiments/config.yaml

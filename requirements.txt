@@ -1,0 +1,9 @@
+numpy
+wave
+pyroomacoustics
+pydub
+scipy
+matplotlib
+ipykernel
+PyYAML
+librosa
