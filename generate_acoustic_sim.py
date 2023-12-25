@@ -4,6 +4,10 @@ from src.class_room import Room
 from src.class_sound import Ambient, Drone, Voice
 from src.file_io import load_config, write_signal_to_npz
 from src.snr import adjust_snr
+from lib.room import custom_plot
+import pyroomacoustics as pra
+
+pra.Room.plot = custom_plot
 
 
 def main(config, output_dir):

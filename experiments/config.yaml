@@ -2,7 +2,7 @@ pra:
   room:
     room_dim: [10, 6]  # [x, y]
     fs: 16000
-    max_order: 6
+    max_order: 4
     floor:
       shape: "random"
       material: "brickwork"  # {"brickwork", "plasterboard", "rough_concrete", "wooden_lining"}
