@@ -1,6 +1,5 @@
 from typing import Tuple, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pyroomacoustics as pra
 
@@ -40,7 +39,7 @@ def get_sn_rec(room: Room, source: Voice,
     test_room_s = pra.Room.from_corners(room.corners, fs=room.fs, max_order=0)
     test_room_n = pra.Room.from_corners(room.corners, fs=room.fs, max_order=0)
     for test_room, signal_data in zip([test_room_s, test_room_n], [source, noise]):
-        for signal, position in zip(signal_data.source, signal_data.positions):
+        for signal, position in zip(signal_data.signals, signal_data.positions):
             test_room.add_source(position, signal=signal)
         test_room.add_microphone_array(pra.MicrophoneArray(mic_loc, room.fs))
         test_room.simulate()
@@ -52,7 +51,7 @@ def confirm_rec(room: Room, source: Voice,
     test_room = pra.Room.from_corners(room.corners, fs=room.fs, max_order=0)
     for signal, position in zip(source.source, source.positions):
         test_room.add_source(position, signal=signal)
-    for signal, position in zip(noise.source, noise.positions):
+    for signal, position in zip(noise.signals, noise.positions):
         test_room.add_source(position, signal=signal)
     test_room.add_microphone_array(pra.MicrophoneArray(mic_loc, room.fs))
     test_room.simulate()
@@ -71,9 +70,9 @@ def adjust_snr(room: Room, source: Voice,
     coef = calculate_coef(rec_s, rec_n, source.n_sound, noise.n_sound, snr_target)
     print(f"Adjustment coefficient: {coef}")
     source_adjusted = []
-    for signal in noise.source:
+    for signal in noise.signals:
         source_adjusted.append((signal / coef))
-    noise.source = source_adjusted
+    noise.signals = source_adjusted
 
     rec_s, rec_n = get_sn_rec(room, source, noise, mic_loc)
     snr = calculate_snr(rec_s, rec_n, source.n_sound, noise.n_sound)

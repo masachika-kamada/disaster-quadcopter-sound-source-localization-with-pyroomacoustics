@@ -63,8 +63,8 @@ class Room:
             new_corners = np.array(new_corners)
 
         elif shape == "random":
-            seed = config["seed"]
-            np.random.seed(seed)
+            # seed = config["seed"]
+            # np.random.seed(seed)
             min_interval, max_interval = config["roughness"]
             n_max = int((x_max - x_min) // min_interval - 1)
             x_rand = np.random.rand(n_max) * (max_interval - min_interval) + min_interval
@@ -95,13 +95,13 @@ class Room:
             room.add_microphone_array(pra.MicrophoneArray(mic_positions, self.fs))
 
     def place_source(self, voice, drone, ambient=None):
-        for signal, position in zip(voice.source, voice.positions):
+        for signal, position in zip(voice.signals, voice.positions):
             self.rooms["source"].add_source(position, signal=signal)
-        for signal, position in zip(drone.source, drone.positions):
+        for signal, position in zip(drone.signals, drone.positions):
             for room_name in ["source", "ncm_rev", "ncm_dir"]:
                 self.rooms[room_name].add_source(position, signal=signal)
         if ambient is not None:
-            for signal, position in zip(ambient.source, ambient.positions):
+            for signal, position in zip(ambient.signals, ambient.positions):
                 self.rooms["source"].add_source(position, signal=signal)
 
     def simulate(self, output_dir):
