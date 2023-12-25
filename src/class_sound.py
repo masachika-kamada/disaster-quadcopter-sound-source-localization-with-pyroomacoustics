@@ -1,8 +1,9 @@
-import numpy as np
 from glob import glob
+
+import numpy as np
 import pyroomacoustics as pra
 
-from src.file_io import load_signal_from_wav
+from .file_io import load_signal_from_wav
 
 
 class AudioLoader:

@@ -4,10 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyroomacoustics as pra
 
-from lib.room import custom_plot
-
-pra.Room.plot = custom_plot
-
 
 class Room:
     def __init__(self, config):
@@ -75,18 +71,6 @@ class Room:
             x_rand = x_max - np.cumsum(x_rand)
             x_rand = x_rand[x_rand >= x_min + min_interval]
             y_rand = np.random.rand(len(x_rand)) * max_interval * 0.5
-
-            x_hole = -3
-            # x_holeを跨いでいるx_randのindexを取得
-            print(np.where(x_rand < x_hole))
-            idx = np.where(x_rand < x_hole)[0][0]
-            print(idx, x_rand[idx], y_rand[idx])
-
-            x_add = np.array([x_hole + 0.1, x_hole + 1, x_hole - 1, x_hole - 0.1])
-            y_add = np.array([0.2, -0.5, -0.4, 0.2])
-            x_rand = np.hstack([x_rand[:idx], x_add, x_rand[idx:]])
-            y_rand = np.hstack([y_rand[:idx], y_add, y_rand[idx:]])
-
             new_corners = np.vstack([x_rand, y_rand]).T
 
         new_corners = np.vstack([corners, new_corners])

@@ -8,7 +8,7 @@ from pydub import AudioSegment
 from scipy.io import wavfile
 from scipy.signal import resample_poly
 
-from src.audio_processing import scale_signal
+from .audio_processing import scale_signal
 
 
 def convert_to_wav(audio_file_path: str) -> str:
@@ -33,8 +33,8 @@ def write_signal_to_wav(signal: np.ndarray, wav_file_path: str, sample_rate: int
     int16_min = np.iinfo(np.int16).min
     if np.any(signal > int16_max) or np.any(signal < int16_min):
         print("Warning: Signal is clipping. It will be scaled to fit int16 range.")
+        signal = scale_signal(signal)
 
-    signal = scale_signal(signal)
     if len(signal.shape) == 1:
         channels = 1
     else:

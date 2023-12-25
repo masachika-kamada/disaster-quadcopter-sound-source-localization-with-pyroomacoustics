@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyroomacoustics as pra
 
-from src.class_room import Room
-from src.class_sound import Ambient, Drone, Voice
-from src.file_io import write_signal_to_wav
+from .class_room import Room
+from .class_sound import Ambient, Drone, Voice
+from .file_io import write_signal_to_wav
 
 
 def calculate_power(signal: np.ndarray) -> float:
@@ -37,7 +37,7 @@ def calculate_coef(signal_s: np.ndarray, signal_n: np.ndarray,
 
 def get_sn_rec(room: Room, source: Voice,
                noise: Union[Drone, Ambient], mic_loc: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    test_room_s = pra.Room.from_corners(room.corners, fs=room.fs, max_order=room.max_order)
+    test_room_s = pra.Room.from_corners(room.corners, fs=room.fs, max_order=0)
     test_room_n = pra.Room.from_corners(room.corners, fs=room.fs, max_order=0)
     for test_room, signal_data in zip([test_room_s, test_room_n], [source, noise]):
         for signal, position in zip(signal_data.source, signal_data.positions):
@@ -49,14 +49,12 @@ def get_sn_rec(room: Room, source: Voice,
 
 def confirm_rec(room: Room, source: Voice,
                 noise: Union[Drone, Ambient], mic_loc: np.ndarray, filename: str) -> None:
-    test_room = pra.Room.from_corners(room.corners, fs=room.fs, max_order=room.max_order)
+    test_room = pra.Room.from_corners(room.corners, fs=room.fs, max_order=0)
     for signal, position in zip(source.source, source.positions):
         test_room.add_source(position, signal=signal)
     for signal, position in zip(noise.source, noise.positions):
         test_room.add_source(position, signal=signal)
     test_room.add_microphone_array(pra.MicrophoneArray(mic_loc, room.fs))
-    test_room.plot()
-    plt.savefig(f"{filename}.png")
     test_room.simulate()
     write_signal_to_wav(test_room.mic_array.signals, f"{filename}.wav", room.fs)
 

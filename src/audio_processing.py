@@ -41,10 +41,11 @@ def modify_audio_volume(input_wav: str, output_wav: Optional[str], volume_delta:
 
 
 def scale_signal(signal: np.ndarray) -> np.ndarray:
-    # スケーリングファクターを信号の最大絶対値に設定
-    scaling_factor = np.max(np.abs(signal))
-    # 音声データをスケーリングして int16 に変換
-    return (signal * np.iinfo(np.int16).max / scaling_factor).astype(np.int16)
+    """シグナルをint16の範囲にスケーリングする"""
+    max_val = np.max(np.abs(signal))
+    if max_val == 0:
+        return signal
+    return signal * (32767 / max_val)
 
 
 def calculate_snr(desired: np.ndarray, out: np.ndarray) -> float:
