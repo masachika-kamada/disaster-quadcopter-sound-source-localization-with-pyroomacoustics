@@ -68,7 +68,7 @@ def adjust_snr(room: Room, source: Voice,
     confirm_rec(room, source, noise, mic_loc, f"{output_dir}/before")
 
     coef = calculate_coef(rec_s, rec_n, source.n_sound, noise.n_sound, snr_target)
-    print(f"Adjustment coefficient: {coef}")
+    print(f"Adjustment coefficient: {coef:.3f}")
     source_adjusted = []
     for signal in noise.signals:
         source_adjusted.append((signal / coef))

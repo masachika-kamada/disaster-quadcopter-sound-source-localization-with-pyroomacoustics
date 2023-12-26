@@ -6,7 +6,6 @@ pra:
     floor:
       shape: "random"
       material: "brickwork"  # {"brickwork", "plasterboard", "rough_concrete", "wooden_lining"}
-      seed: 0  # {0, 1, 2}
       roughness: [0.1, 1.0]  # {[0.1, 1.0], [0.5, 2.0], [1.0, 3.0]}
 
 voice:
@@ -18,7 +17,7 @@ ambient:
 
 drone:
   mic_positions:
-    height: 1  # {1, 2, 3, 4, 5}
+    height: 2  # {2, 3, 4, 5}
     M: 8
     radius: 0.1
   propeller:

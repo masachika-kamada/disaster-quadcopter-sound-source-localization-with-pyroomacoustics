@@ -1,5 +1,3 @@
-import time
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pyroomacoustics as pra
@@ -63,8 +61,6 @@ class Room:
             new_corners = np.array(new_corners)
 
         elif shape == "random":
-            # seed = config["seed"]
-            # np.random.seed(seed)
             min_interval, max_interval = config["roughness"]
             n_max = int((x_max - x_min) // min_interval - 1)
             x_rand = np.random.rand(n_max) * (max_interval - min_interval) + min_interval
@@ -106,10 +102,7 @@ class Room:
 
     def simulate(self, output_dir):
         for room_name in ["source", "ncm_rev", "ncm_dir"]:
-            t0 = time.time()
             self.rooms[room_name].simulate()
-            t1 = time.time()
-            print(f"Room simulation time (room={room_name}): {t1 - t0}")
 
         self.rooms["source"].plot()
         plt.savefig(f"{output_dir}/room.png")

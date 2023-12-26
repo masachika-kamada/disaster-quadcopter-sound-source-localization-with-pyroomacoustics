@@ -86,7 +86,8 @@ class Drone(AudioLoader):
         d_ground = config_mic_positions["height"]
         d_propeller = self.offset[1]
         snr_diff = 10 * np.log10(d_propeller ** 2 / d_ground ** 2)
-        self.snr = config["snr"] - snr_diff
+        print(f"snr_diff: {snr_diff:.2f}, snr: {config['snr']:.2f}")
+        self.snr = config["snr"] + snr_diff
 
     def _create_mic_positions(self, config):
         return pra.circular_2D_array(
