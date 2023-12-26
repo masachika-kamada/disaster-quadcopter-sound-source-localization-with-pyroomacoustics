@@ -76,13 +76,17 @@ class Ambient(PositionedAudioLoader):
 class Drone(AudioLoader):
     def __init__(self, config, fs):
         super().__init__(config, 4, fs)
-        self.snr = config["snr"]
         config_mic_positions = config["mic_positions"]
         self.mic_positions = self._create_mic_positions(config_mic_positions)
         config_propeller = config.get("propeller", {})
         self.offset = np.array(config_propeller.get("offset", [0, 0]))
         self.width = config_propeller.get("width", 0.1)
         self._adjust_source_positions((0, config_mic_positions["height"]))
+
+        d_ground = config_mic_positions["height"]
+        d_propeller = self.offset[1]
+        snr_diff = 10 * np.log10(d_propeller ** 2 / d_ground ** 2)
+        self.snr = config["snr"] - snr_diff
 
     def _create_mic_positions(self, config):
         return pra.circular_2D_array(

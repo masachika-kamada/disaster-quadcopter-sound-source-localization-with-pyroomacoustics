@@ -10,11 +10,10 @@ pra:
       roughness: [0.1, 1.0]  # {[0.1, 1.0], [0.5, 2.0], [1.0, 3.0]}
 
 voice:
-  # source_dir: "data/voice"
-  source_dir: "data/sample"
+  source_dir: "data/voice"
 
 ambient:
-  snr: 0
+  snr: 0  # {-3, 0, 3}
   source_dir: "data/ambient"
 
 drone:
@@ -25,7 +24,7 @@ drone:
   propeller:
     offset: [0, 0.5]
     width: 0.45
-  snr: 0
+  snr: 8  # {8, 11, 14}
   source_dir: "data/drone"
 
 processing:

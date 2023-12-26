@@ -49,7 +49,7 @@ def get_sn_rec(room: Room, source: Voice,
 def confirm_rec(room: Room, source: Voice,
                 noise: Union[Drone, Ambient], mic_loc: np.ndarray, filename: str) -> None:
     test_room = pra.Room.from_corners(room.corners, fs=room.fs, max_order=0)
-    for signal, position in zip(source.source, source.positions):
+    for signal, position in zip(source.signals, source.positions):
         test_room.add_source(position, signal=signal)
     for signal, position in zip(noise.signals, noise.positions):
         test_room.add_source(position, signal=signal)
