@@ -1,6 +1,7 @@
 import itertools
 import math
 import os
+import sys
 
 import pyroomacoustics as pra
 from tqdm import tqdm
@@ -14,16 +15,15 @@ from src.snr import adjust_snr
 pra.Room.plot = custom_plot
 
 
-def export_ans(mic_center, sound_positions):
-    print(f"mic_center: {mic_center}")
-    print(f"sound_positions: {sound_positions}")
+def export_ans(mic_center, sound_positions, output_dir):
     ans = []
     for position in sound_positions:
-        dx = position[0] - mic_center[0]
-        dy = position[1] - mic_center[1]
+        dx = position[0] - mic_center[0][0]
+        dy = position[1] - mic_center[1][0]
         ans.append(math.atan2(dy, dx))
-    print(f"ans: {ans}")
-    return ans
+    ans = sorted(ans)
+    with open(f"{output_dir}/ans.txt", "w") as f:
+        f.write("\n".join(map(str, ans)))
 
 
 def main(config, output_dir):
@@ -55,7 +55,7 @@ def main(config, output_dir):
         write_signal_to_npz(signal, f"{output_dir}/{name}.npz", room.fs)
 
     sound_positions = voice.positions if ambient is None else voice.positions + ambient.positions
-    export_ans(room.rooms["source"].mic_array.center, sound_positions)
+    export_ans(room.rooms["source"].mic_array.center, sound_positions, output_dir)
 
 
 def update_config(
@@ -77,6 +77,16 @@ def create_output_directory(*args):
     return output_dir
 
 
+class TqdmPrintRedirect:
+    def __init__(self, tqdm_object):
+        self.tqdm_object = tqdm_object
+        self.original_write = tqdm_object.fp.write
+
+    def write(self, message):
+        # tqdmのオリジナルwriteメソッドを使用
+        self.original_write(message)
+
+
 if __name__ == "__main__":
     config = load_config("experiments/config.yaml")
 
@@ -96,7 +106,7 @@ if __name__ == "__main__":
     snr_egos = [8]
     snr_ambients = [0]
 
-    for params in tqdm(itertools.product(
+    params_list = list(itertools.product(
         heights,
         roughnesses,
         materials,
@@ -104,7 +114,18 @@ if __name__ == "__main__":
         n_ambients,
         snr_egos,
         snr_ambients,
-    )):
-        updated_config = update_config(config, *params)
-        output_dir = create_output_directory(*params)
-        main(config, output_dir)
+    ))
+
+    # プログレスバーがアクティブな間、sys.stdoutを上書き
+    with tqdm(total=len(params_list)) as pbar:
+        original_stdout = sys.stdout
+        sys.stdout = TqdmPrintRedirect(pbar)
+
+        for params in params_list:
+            updated_config = update_config(config, *params)
+            output_dir = create_output_directory(*params)
+            main(config, output_dir)
+            pbar.update(1)
+
+        # プログレスバー終了後に元のstdoutに戻す
+        sys.stdout = original_stdout

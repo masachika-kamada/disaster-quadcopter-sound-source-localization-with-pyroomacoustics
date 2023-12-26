@@ -10,12 +10,12 @@ class AudioLoader:
     _x_positions_pool = None
 
     @classmethod
-    def initialize_x_positions_pool(cls, room, step=0.3):
+    def initialize_x_positions_pool(cls, room, step=0.5):
         if cls._x_positions_pool is None:
             room_x = np.append(room.corners[0][3:], room.corners[0][0])[::-1]
             min_x = min(room_x)
             max_x = max(room_x)
-            cls._x_positions_pool = list(np.arange(min_x + 0.1, max_x - 0.1, step))
+            cls._x_positions_pool = list(np.arange(min_x + 0.25, max_x - 0.25, step))
 
     @classmethod
     def get_x_positions(cls, n_sound):
@@ -86,7 +86,6 @@ class Drone(AudioLoader):
         d_ground = config_mic_positions["height"]
         d_propeller = self.offset[1]
         snr_diff = 10 * np.log10(d_propeller ** 2 / d_ground ** 2)
-        print(f"snr_diff: {snr_diff:.2f}, snr: {config['snr']:.2f}")
         self.snr = config["snr"] + snr_diff
 
     def _create_mic_positions(self, config):
