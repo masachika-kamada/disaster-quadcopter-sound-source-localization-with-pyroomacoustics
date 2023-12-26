@@ -74,5 +74,5 @@ def adjust_snr(room: Room, source: Voice,
 
     rec_s, rec_n = get_sn_rec(room, source, noise, mic_loc)
     snr_after = calculate_snr(rec_s, rec_n, source.n_sound, noise.n_sound)
-    print(f"snr adjusted: {snr_before:.2f} -> {snr_after:.2f}")
+    # print(f"snr adjusted: {snr_before:.2f} -> {snr_after:.2f}")
     confirm_rec(room, source, noise, mic_loc, f"{output_dir}/after")

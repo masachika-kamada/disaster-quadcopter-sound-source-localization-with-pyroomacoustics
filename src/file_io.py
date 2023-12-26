@@ -29,10 +29,10 @@ def write_signal_to_wav(signal: np.ndarray, wav_file_path: str, sample_rate: int
     ensure_dir(wav_file_path)
 
     """WAVファイルに信号を書き込む。クリッピングが発生する場合はワーニングを表示する。"""
-    int16_max = np.iinfo(np.int16).max
-    int16_min = np.iinfo(np.int16).min
-    if np.any(signal > int16_max) or np.any(signal < int16_min):
-        print("Warning: Signal is clipping. It will be scaled to fit int16 range.")
+    # int16_max = np.iinfo(np.int16).max
+    # int16_min = np.iinfo(np.int16).min
+    # if np.any(signal > int16_max) or np.any(signal < int16_min):
+    #     print("Warning: Signal is clipping. It will be scaled to fit int16 range.")
     signal = scale_signal(signal)
 
     if len(signal.shape) == 1:

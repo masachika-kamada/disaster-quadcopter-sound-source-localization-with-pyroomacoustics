@@ -86,25 +86,32 @@ class TqdmPrintRedirect:
         # tqdmのオリジナルwriteメソッドを使用
         self.original_write(message)
 
+    def flush(self):
+        pass
+
+
+def safe_main(config, output_dir, attempt=1):
+    try:
+        main(config, output_dir)
+    except Exception as e:
+        if attempt < 3:
+            print(f"Error occurred, retrying... Attempt {attempt}")
+            safe_main(config, output_dir, attempt + 1)
+        else:
+            print(f"Failed after 3 attempts. Error: {e}")
+            raise
+
 
 if __name__ == "__main__":
     config = load_config("experiments/config.yaml")
 
-    # heights = [2, 3, 4, 5]
-    # roughnesses = [[0.1, 1.0], [0.5, 2.0], [1.0, 3.0]]
-    # materials = ["brickwork", "plasterboard", "rough_concrete", "wooden_lining"]
-    # n_voices = [1, 2, 3]
-    # n_ambients = [0, 1, 2]
-    # snr_egos = [8, 11, 14]
-    # snr_ambients = [-3, 0, 3]
-
-    heights = [2, 3]
-    roughnesses = [[0.1, 1.0]]
-    materials = ["brickwork"]
-    n_voices = [2]
-    n_ambients = [1]
-    snr_egos = [8]
-    snr_ambients = [0]
+    heights = [2, 3, 4, 5]
+    roughnesses = [[0.1, 1.0], [0.5, 2.0], [1.0, 3.0]]
+    materials = ["brickwork", "plasterboard", "rough_concrete", "wooden_lining"]
+    n_voices = [1, 2, 3]
+    n_ambients = [0, 1, 2]
+    snr_egos = [8, 11, 14]
+    snr_ambients = [-3, 0, 3]
 
     params_list = list(itertools.product(
         heights,
@@ -123,8 +130,9 @@ if __name__ == "__main__":
 
         for params in params_list:
             updated_config = update_config(config, *params)
-            output_dir = create_output_directory(*params)
-            main(config, output_dir)
+            for i in range(3):
+                output_dir = create_output_directory(*(params + (i,)))
+                safe_main(config, output_dir)
             pbar.update(1)
 
         # プログレスバー終了後に元のstdoutに戻す

@@ -11,11 +11,10 @@ class AudioLoader:
 
     @classmethod
     def initialize_x_positions_pool(cls, room, step=0.5):
-        if cls._x_positions_pool is None:
-            room_x = np.append(room.corners[0][3:], room.corners[0][0])[::-1]
-            min_x = min(room_x)
-            max_x = max(room_x)
-            cls._x_positions_pool = list(np.arange(min_x + 0.25, max_x - 0.25, step))
+        room_x = np.append(room.corners[0][3:], room.corners[0][0])[::-1]
+        min_x = min(room_x)
+        max_x = max(room_x)
+        cls._x_positions_pool = list(np.arange(min_x + 0.25, max_x - 0.24, step))
 
     @classmethod
     def get_x_positions(cls, n_sound):
