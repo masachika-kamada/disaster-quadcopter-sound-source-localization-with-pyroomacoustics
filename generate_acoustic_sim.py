@@ -28,7 +28,7 @@ def main(config, output_dir):
     room = Room(config["pra"])
     AudioLoader.initialize_x_positions_pool(room)
     voice = Voice(config["voice"], config["n_voice"], fs=room.fs, room=room)
-    drone = Drone(config["drone"], 4, fs=room.fs)
+    drone = Drone(config["drone"], fs=room.fs)
     if config["n_ambient"] != 0:
         ambient = Ambient(config["ambient"], config["n_ambient"], fs=room.fs, room=room)
     else:

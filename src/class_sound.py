@@ -74,8 +74,8 @@ class Ambient(PositionedAudioLoader):
 
 
 class Drone(AudioLoader):
-    def __init__(self, config, n_sound, fs):
-        super().__init__(config, n_sound, fs)
+    def __init__(self, config, fs):
+        super().__init__(config, 4, fs)
         self.snr = config["snr"]
         config_mic_positions = config["mic_positions"]
         self.mic_positions = self._create_mic_positions(config_mic_positions)
