@@ -16,7 +16,7 @@ def calculate_power(signal: np.ndarray) -> float:
 
 
 def calculate_snr(signal_s: np.ndarray, signal_n: np.ndarray,
-                  n_data_s: int, n_data_n: int) -> float:
+                  n_data_s: int = 1, n_data_n: int = 1) -> float:
     power_s = calculate_power(signal_s) / n_data_s
     power_n = calculate_power(signal_n) / n_data_n
     snr = 10 * np.log10(power_s / power_n)
