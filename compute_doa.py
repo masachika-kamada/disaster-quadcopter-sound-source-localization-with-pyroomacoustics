@@ -7,7 +7,51 @@ from tqdm import tqdm
 from lib.custom import create_doa_object, perform_fft_on_frames
 from src.class_sound import Drone
 from src.file_io import load_config, load_signal_from_npz
+from src.metrics import export_metrics
 from src.visualization_tools import plot_music_spectra
+
+
+class DoaProcessor:
+    def __init__(self, args, experiment_dir, drone, fs, num_src, frame_length, ans):
+        self.args = args
+        self.experiment_dir = experiment_dir
+        self.drone = drone
+        self.fs = fs
+        self.num_src = num_src
+        self.frame_length = frame_length
+        self.ans = ans
+
+    def process_method(self, method, suffix, X_source, X_ncm):
+        output_dir = f"{self.experiment_dir}/{method}_{suffix}" if method == "GEVD" else f"{self.experiment_dir}/{method}"
+        os.makedirs(output_dir, exist_ok=True)
+
+        doa = create_doa_object(
+            method=method,
+            source_noise_thresh=100,
+            mic_positions=self.drone.mic_positions,
+            fs=self.fs,
+            nfft=self.args.window_size,
+            num_src=self.num_src,
+            output_dir=output_dir,
+        )
+
+        for f in range(0, X_source.shape[2], self.frame_length // 4):
+            xs = X_source[:, :, f : f + self.frame_length]
+            if method == "SEVD":
+                xn = None
+            else:
+                xn = X_ncm[:, :, f : f + self.frame_length] if "stable" not in suffix else X_ncm
+
+            if suffix is not None and "diff" in suffix:
+                doa.locate_sources(xs, xn, freq_range=self.args.freq_range, auto_identify=True, ncm_diff=0.05)
+            else:
+                doa.locate_sources(xs, xn, freq_range=self.args.freq_range, auto_identify=True)
+
+        plot_music_spectra(doa, output_dir=output_dir)
+        np.save(f"{output_dir}/decomposed_values.npy", np.array(doa.decomposed_values_strage))
+        np.save(f"{output_dir}/decomposed_vectors.npy", np.array(doa.decomposed_vectors_strage))
+        np.save(f"{output_dir}/spectra.npy", np.array(doa.spectra_storage))
+        export_metrics(output_dir, doa.spectra_storage, self.ans)
 
 
 def main(args, config, experiment_dir):
@@ -19,99 +63,42 @@ def main(args, config, experiment_dir):
     signal_ncm_rev, fs = load_signal_from_npz(f"{experiment_dir}/simulation/ncm_rev.npz")
     signal_ncm_dir, fs = load_signal_from_npz(f"{experiment_dir}/simulation/ncm_dir.npz")
 
+    with open(f"{experiment_dir}/simulation/ans.txt") as f:
+        ans = [float(line) for line in f.readlines()]
+
     X_source = perform_fft_on_frames(signal_source, args.window_size, args.hop_size)
     X_ncm_rev = perform_fft_on_frames(signal_ncm_rev, args.window_size, args.hop_size)
     X_ncm_dir = perform_fft_on_frames(signal_ncm_dir, args.window_size, args.hop_size)
 
-    num_voice = int(experiment_dir.split("-")[3])
-    num_ambient = int(experiment_dir.split("-")[4])
+    num_voice = int(experiment_dir.split(";")[3])
+    num_ambient = int(experiment_dir.split(";")[4])
     num_src = num_voice + num_ambient + 1
     frame_length = 100
 
-    # SEVD
-    method = "SEVD"
-    output_dir = f"{experiment_dir}/{method}"
-    os.makedirs(output_dir, exist_ok=True)
-    doa = create_doa_object(
-        method=method,
-        source_noise_thresh=100,
-        mic_positions=drone.mic_positions,
-        fs=fs,
-        nfft=args.window_size,
-        num_src=num_src,
-        output_dir=output_dir,
-    )
-    for f in range(0, X_source.shape[2], frame_length // 4):
-        xs = X_source[:, :, f : f + frame_length]
-        doa.locate_sources(xs, None, freq_range=args.freq_range, auto_identify=True)
-    plot_music_spectra(doa, output_dir=output_dir)
-    np.save(f"{output_dir}/decomposed_values.npy", np.array(doa.decomposed_values_strage))
-    np.save(f"{output_dir}/decomposed_vectors.npy", np.array(doa.decomposed_vectors_strage))
+    processor = DoaProcessor(args, experiment_dir, drone, fs, num_src, frame_length, ans)
 
-    # GEVD
-    method = "GEVD"
-    doa = create_doa_object(
-        method=method,
-        source_noise_thresh=100,
-        mic_positions=drone.mic_positions,
-        fs=fs,
-        nfft=args.window_size,
-        num_src=num_src,
-        output_dir="",
-    )
+    """ SEVD """
+    processor.process_method("SEVD", None, X_source, None)
 
+    """ GEVD """
     # incremental
     frame_s = 140
     frame_t_n = 90
-    output_dir = f"{experiment_dir}/{method}_incremental"
-    doa.output_dir = output_dir
-    os.makedirs(output_dir, exist_ok=True)
-    for f in range(0, X_source.shape[2] - frame_s - frame_t_n, frame_length // 4):
-        xn = X_source[:, :, f : f + frame_t_n]
-        f2 = f + frame_s + frame_t_n
-        xs = X_source[:, :, f2 : f2 + frame_length]
-        doa.locate_sources(xs, xn, freq_range=args.freq_range, auto_identify=True)
-    plot_music_spectra(doa, output_dir=output_dir)
-    np.save(f"{output_dir}/decomposed_values.npy", np.array(doa.decomposed_values_strage))
-    np.save(f"{output_dir}/decomposed_vectors.npy", np.array(doa.decomposed_vectors_strage))
+    X_source_i = X_source[:, :, : -(frame_s + frame_t_n)]
+    X_ncm_i = X_ncm_dir[:, :, frame_s + frame_t_n :]
+    processor.process_method("GEVD", "incremental", X_source_i, X_ncm_i)
 
     # ans
-    for basename, X_ncm in zip(["rev", "dir"], [X_ncm_rev, X_ncm_dir]):
-        output_dir = f"{experiment_dir}/{method}_ans_{basename}"
-        doa.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
-        for f in range(0, X_source.shape[2], frame_length // 4):
-            xs = X_source[:, :, f : f + frame_length]
-            xn = X_ncm[:, :, f : f + frame_length]
-            doa.locate_sources(xs, xn, freq_range=args.freq_range, auto_identify=True)
-        plot_music_spectra(doa, output_dir=output_dir)
-        np.save(f"{output_dir}/decomposed_values.npy", np.array(doa.decomposed_values_strage))
-        np.save(f"{output_dir}/decomposed_vectors.npy", np.array(doa.decomposed_vectors_strage))
+    processor.process_method("GEVD", "ans_dir", X_source, X_ncm_dir)
+    processor.process_method("GEVD", "ans_rev", X_source, X_ncm_rev)
 
     # diff
-    for basename, X_ncm in zip(["rev", "dir"], [X_ncm_rev, X_ncm_dir]):
-        output_dir = f"{experiment_dir}/{method}_diff_{basename}"
-        doa.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
-        for f in range(0, X_source.shape[2], frame_length // 4):
-            xs = X_source[:, :, f : f + frame_length]
-            xn = X_ncm[:, :, f : f + frame_length]
-            doa.locate_sources(xs, xn, freq_range=args.freq_range, auto_identify=True, ncm_diff=0.05)
-        plot_music_spectra(doa, output_dir=output_dir)
-        np.save(f"{output_dir}/decomposed_values.npy", np.array(doa.decomposed_values_strage))
-        np.save(f"{output_dir}/decomposed_vectors.npy", np.array(doa.decomposed_vectors_strage))
+    processor.process_method("GEVD", "diff_dir", X_source, X_ncm_dir)
+    processor.process_method("GEVD", "diff_rev", X_source, X_ncm_rev)
 
     # stable
-    for basename, X_ncm in zip(["rev", "dir"], [X_ncm_rev, X_ncm_dir]):
-        output_dir = f"{experiment_dir}/{method}_stable_{basename}"
-        doa.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
-        for f in range(0, X_source.shape[2], frame_length // 4):
-            xs = X_source[:, :, f : f + frame_length]
-            doa.locate_sources(xs, X_ncm, freq_range=args.freq_range, auto_identify=True)
-        plot_music_spectra(doa, output_dir=output_dir)
-        np.save(f"{output_dir}/decomposed_values.npy", np.array(doa.decomposed_values_strage))
-        np.save(f"{output_dir}/decomposed_vectors.npy", np.array(doa.decomposed_vectors_strage))
+    processor.process_method("GEVD", "stable_dir", X_source, X_ncm_dir)
+    processor.process_method("GEVD", "stable_rev", X_source, X_ncm_rev)
 
 
 if __name__ == "__main__":
@@ -128,3 +115,4 @@ if __name__ == "__main__":
     experiment_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
     for experiment_dir in tqdm(experiment_dirs, desc="Processing experiments"):
         main(args, config, os.path.join(base_path, experiment_dir))
+        break

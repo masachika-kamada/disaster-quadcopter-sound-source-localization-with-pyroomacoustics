@@ -72,7 +72,7 @@ def update_config(
 
 
 def create_output_directory(*args):
-    output_dir = f"experiments/{'-'.join(map(str, args))}/simulation"
+    output_dir = f"experiments/{';'.join(map(str, args))}/simulation"
     os.makedirs(output_dir, exist_ok=True)
     return output_dir
 
