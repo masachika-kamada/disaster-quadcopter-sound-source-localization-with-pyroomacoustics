@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 
 import numpy as np
@@ -63,8 +64,8 @@ def main(args, config, experiment_dir):
     signal_ncm_rev, fs = load_signal_from_npz(f"{experiment_dir}/simulation/ncm_rev.npz")
     signal_ncm_dir, fs = load_signal_from_npz(f"{experiment_dir}/simulation/ncm_dir.npz")
 
-    with open(f"{experiment_dir}/simulation/ans.txt") as f:
-        ans = [float(line) for line in f.readlines()]
+    with open(f"{experiment_dir}/simulation/ans.json", "r") as f:
+        ans = json.load(f)
 
     X_source = perform_fft_on_frames(signal_source, args.window_size, args.hop_size)
     X_ncm_rev = perform_fft_on_frames(signal_ncm_rev, args.window_size, args.hop_size)
