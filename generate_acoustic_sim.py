@@ -1,4 +1,5 @@
 import itertools
+import json
 import math
 import os
 import sys
@@ -15,15 +16,26 @@ from src.snr import adjust_snr
 pra.Room.plot = custom_plot
 
 
-def export_ans(mic_center, sound_positions, output_dir):
-    ans = []
-    for position in sound_positions:
+def calculate_angles(positions, mic_center):
+    angles = []
+    for position in positions:
         dx = position[0] - mic_center[0][0]
         dy = position[1] - mic_center[1][0]
-        ans.append(math.atan2(dy, dx))
-    ans = sorted(ans)
-    with open(f"{output_dir}/ans.txt", "w") as f:
-        f.write("\n".join(map(str, ans)))
+        angles.append(math.atan2(dy, dx))
+    return sorted(angles)
+
+
+def export_ans(mic_center, output_dir, voice, ambient):
+    ans = {}
+    if voice is not None:
+        voice_ans = calculate_angles(voice.positions, mic_center)
+        ans["voice"] = voice_ans
+    if ambient is not None:
+        ambient_ans = calculate_angles(ambient.positions, mic_center)
+        ans["ambient"] = ambient_ans
+
+    with open(f"{output_dir}/ans.json", "w") as f:
+        json.dump(ans, f, indent=4)
 
 
 def main(config, output_dir):
@@ -54,8 +66,7 @@ def main(config, output_dir):
         # signalがint16でオーバーフローするのでnpzで保存する
         write_signal_to_npz(signal, f"{output_dir}/{name}.npz", room.fs)
 
-    sound_positions = voice.positions if ambient is None else voice.positions + ambient.positions
-    export_ans(room.rooms["source"].mic_array.center, sound_positions, output_dir)
+    export_ans(room.rooms["source"].mic_array.center, output_dir, voice, ambient)
 
 
 def update_config(
@@ -106,8 +117,8 @@ if __name__ == "__main__":
     config = load_config("experiments/config.yaml")
 
     heights = [2, 3, 4, 5]
-    roughnesses = [[0.1, 1.0], [0.5, 2.0], [1.0, 3.0]]
-    materials = ["brickwork", "plasterboard", "rough_concrete", "wooden_lining"]
+    roughnesses = [[0.1, 1.0], [0.2, 1.2]]
+    materials = ["hard_surface", "plasterboard", "wooden_lining"]
     n_voices = [1, 2, 3]
     n_ambients = [0, 1, 2]
     snr_egos = [8, 11, 14]
@@ -130,9 +141,8 @@ if __name__ == "__main__":
 
         for params in params_list:
             updated_config = update_config(config, *params)
-            for i in range(3):
-                output_dir = create_output_directory(*(params + (i,)))
-                safe_main(config, output_dir)
+            output_dir = create_output_directory(*params)
+            safe_main(config, output_dir)
             pbar.update(1)
 
         # プログレスバー終了後に元のstdoutに戻す
