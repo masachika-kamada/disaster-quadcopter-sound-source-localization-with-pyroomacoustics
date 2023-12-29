@@ -43,7 +43,7 @@ def export_metrics(output_dir: str, music_spectra: list, ans: list):
     method = output_dir.split("/")[-1]
 
     # CSVファイルに書き込み
-    csv_file_path = "metrics.csv"
+    csv_file_path = "results/metrics.csv"
     is_file_exist = os.path.isfile(csv_file_path)
 
     with open(csv_file_path, mode="a", newline="") as file:
