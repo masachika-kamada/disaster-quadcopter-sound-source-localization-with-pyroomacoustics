@@ -17,7 +17,8 @@
                 "christian-kohler.path-intellisense",
                 "shardulm94.trailing-spaces",
                 "eamodio.gitlens",
-                "ms-toolsai.jupyter"
+                "ms-toolsai.jupyter",
+                "janisdd.vscode-edit-csv"
             ]
         }
     }
