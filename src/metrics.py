@@ -43,7 +43,7 @@ def export_metrics(output_dir: str, music_spectra: list, ans: list):
     method = output_dir.split("/")[-1]
 
     # CSVファイルに書き込み
-    csv_file_path = "experiments/metrics.csv"
+    csv_file_path = "metrics.csv"
     is_file_exist = os.path.isfile(csv_file_path)
 
     with open(csv_file_path, mode="a", newline="") as file:
@@ -57,7 +57,7 @@ def export_metrics(output_dir: str, music_spectra: list, ans: list):
 
         # メトリクスとパラメータを書き込む
         writer.writerow(params + [method, round(recall, 3), round(precision, 3), round(f1, 3), \
-                                  round(aipc_pos, 3), round(aipc_neg, 3)])
+                                  round(aipc_pos, 5), round(aipc_neg, 5)])
 
 
 def calculate_aipc(vals: np.ndarray, d_theta: float):

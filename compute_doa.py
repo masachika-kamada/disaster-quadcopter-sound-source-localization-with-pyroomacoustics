@@ -112,7 +112,6 @@ if __name__ == "__main__":
     config = load_config("experiments/config.yaml")
 
     base_path = "experiments"
-    experiment_dirs = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+    experiment_dirs = sorted([d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))])
     for experiment_dir in tqdm(experiment_dirs, desc="Processing experiments"):
         main(args, config, os.path.join(base_path, experiment_dir))
-        break

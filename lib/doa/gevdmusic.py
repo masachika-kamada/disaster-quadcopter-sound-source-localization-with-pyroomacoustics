@@ -19,13 +19,20 @@ class GevdMUSIC(MUSIC):
         # compute source and noise correlation matrices
         R = self._compute_correlation_matricesvec(X)
         K = self._compute_correlation_matricesvec(X_noise)
-        if kwargs.get("ncm_diff", False):
-            K = apply_error_to_hermitian_matrices(K, 0.05)
-            for i in range(self.num_freq):
-                if not is_positive_definite(K[i]):
-                    print("K not positive definite")
-        # subspace decomposition
-        noise_subspace = self._extract_noise_subspace(R, K, auto_identify=auto_identify)
+        order = 1e-4  # 初期オーダー
+        max_attempts = 3  # 最大試行回数
+        for attempt in range(max_attempts):
+            try:
+                if kwargs.get("ncm_diff", False):
+                    K = apply_error_to_hermitian_matrices(K, 0.05, order)
+                    for i in range(self.num_freq):
+                        if not is_positive_definite(K[i]):
+                            print("K not positive definite")
+                noise_subspace = self._extract_noise_subspace(R, K, auto_identify=auto_identify)
+                break  # エラーが発生しなかった場合、ループを抜ける
+            except Exception as e:
+                print(f"Error encountered: {e}, increasing order to {order * 10}")
+                order *= 10  # オーダーを10倍にする
         # compute spatial spectrum
         self.spatial_spectrum = self._compute_spatial_spectrum(noise_subspace)
 
@@ -44,6 +51,7 @@ class GevdMUSIC(MUSIC):
 
         # print(decomposed_values.shape, self.num_freq)
         self.decomposed_values_strage.append(decomposed_values)
+        self.decomposed_vectors_strage.append(decomposed_vectors)
 
         # if auto_identify:
         #     self.num_src = self._auto_identify(decomposed_values)
@@ -53,7 +61,7 @@ class GevdMUSIC(MUSIC):
         return noise_subspace
 
 
-def apply_error_to_hermitian_matrices(K, error_ratio):
+def apply_error_to_hermitian_matrices(K, error_ratio, order):
     """
     Apply random errors to all Hermitian matrices in the given array and
     ensure that all matrices are positive definite.
@@ -81,7 +89,7 @@ def apply_error_to_hermitian_matrices(K, error_ratio):
 
         # Ensure positive definiteness
         eigvals, eigvecs = np.linalg.eigh(matrix)
-        eigvals[eigvals < 0] = 1e-4
+        eigvals[eigvals < 0] = order
         matrix[:] = eigvecs @ np.diag(eigvals) @ eigvecs.T
 
     return modified_K
