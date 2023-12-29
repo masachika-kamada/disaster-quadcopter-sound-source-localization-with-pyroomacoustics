@@ -11,12 +11,12 @@ def export_metrics(output_dir: str, music_spectra: list, ans: list):
     # Area Inside a Polar Curve
     music_spectra /= np.max(music_spectra)
     d_theta = np.pi / 180
-    aipc_pos, aipc_neg = 0, 0
+    aipc_lower, aipc_upper = 0, 0
     for spectrum in music_spectra:
-        aipc_neg += calculate_aipc(spectrum[:180], d_theta)
-        aipc_pos += calculate_aipc(spectrum[180:], d_theta)
-    aipc_pos /= len(music_spectra)
-    aipc_neg /= len(music_spectra)
+        aipc_upper += calculate_aipc(spectrum[:180], d_theta)
+        aipc_lower += calculate_aipc(spectrum[180:], d_theta)
+    aipc_lower /= len(music_spectra)
+    aipc_upper /= len(music_spectra)
 
     # Peak
     music_spectra = music_spectra[:, :180]
@@ -36,7 +36,7 @@ def export_metrics(output_dir: str, music_spectra: list, ans: list):
     precision = total_TP / (total_TP + total_FP) if total_TP + total_FP > 0 else 0
     f1 = 2 * (precision * recall) / (precision + recall) if precision + recall > 0 else 0
 
-    for metric in [recall, precision, f1, aipc_pos, aipc_neg]:
+    for metric in [recall, precision, f1, aipc_lower, aipc_upper]:
         metric = round(metric, 3)
 
     params = output_dir.split("/")[-2].split(";")
@@ -51,13 +51,13 @@ def export_metrics(output_dir: str, music_spectra: list, ans: list):
 
         # ファイルが存在しない場合、または空の場合、ヘッダーを書き込む
         if not is_file_exist or os.path.getsize(csv_file_path) == 0:
-            writer.writerow(["heights", "roughnesses", "materials", "n_voices", "n_ambients", \
-                             "snr_egos", "snr_ambients", "idx", "method", \
-                             "recall", "precision", "f1", "aipc_pos", "aipc_neg"])
+            writer.writerow(["height", "roughness", "material", "n_voice", "n_ambient", \
+                             "snr_ego", "snr_ambient", "method", \
+                             "recall", "precision", "f1_score", "aipc_lower", "aipc_upper"])
 
         # メトリクスとパラメータを書き込む
         writer.writerow(params + [method, round(recall, 3), round(precision, 3), round(f1, 3), \
-                                  round(aipc_pos, 5), round(aipc_neg, 5)])
+                                  round(aipc_lower, 5), round(aipc_upper, 5)])
 
 
 def calculate_aipc(vals: np.ndarray, d_theta: float):

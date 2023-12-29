@@ -9,3 +9,5 @@ PyYAML
 librosa
 tqdm
 isort
+pandas
+seaborn
