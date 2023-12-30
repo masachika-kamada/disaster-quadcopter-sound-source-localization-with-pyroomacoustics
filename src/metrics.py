@@ -34,16 +34,18 @@ def export_metrics(output_dir: str, music_spectra: list, ans: dict):
             calculate_evaluation_metrics(ans_voice, ans_ambient, - np.pi + idx * d_theta, 3)
         TP_voice_3 += TP_voice
         FN_voice_3 += FN_voice
-        TP_ambient_3 += TP_ambient
-        FN_ambient_3 += FN_ambient
+        if len(ans_ambient) > 0:
+            TP_ambient_3 += TP_ambient
+            FN_ambient_3 += FN_ambient
         FP_3 += FP
 
         TP_voice, FN_voice, TP_ambient, FN_ambient, FP = \
             calculate_evaluation_metrics(ans_voice, ans_ambient, - np.pi + idx * d_theta, 5)
         TP_voice_5 += TP_voice
         FN_voice_5 += FN_voice
-        TP_ambient_5 += TP_ambient
-        FN_ambient_5 += FN_ambient
+        if len(ans_ambient) > 0:
+            TP_ambient_5 += TP_ambient
+            FN_ambient_5 += FN_ambient
         FP_5 += FP
 
     # export
