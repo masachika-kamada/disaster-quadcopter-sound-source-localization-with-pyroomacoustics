@@ -19,7 +19,7 @@ drone:
   mic_positions:
     height: 2  # {2, 3, 4, 5}
     M: 8
-    radius: 0.1
+    radius: 0.2
   propeller:
     offset: [0, 0.5]
     width: 0.45

@@ -45,7 +45,7 @@ class PositionedAudioLoader(AudioLoader):
 
         positions = []
         for x in xs:
-            offset = np.random.uniform(0.1, 0.6)
+            offset = np.random.uniform(0.1, 0.5)
             idx = np.searchsorted(room_x, x, side="right")
             if room_x[idx] == x:
                 positions.append([x, room_y[idx] + offset])
@@ -88,12 +88,20 @@ class Drone(AudioLoader):
         self.snr = config["snr"] + snr_diff
 
     def _create_mic_positions(self, config):
-        return pra.circular_2D_array(
-            center=(0, config["height"]),
-            M=config["M"],
-            phi0=0,
-            radius=config["radius"],
-        )
+        center = (0, config["height"])
+        radius = config["radius"]
+        mic_positions = pra.circular_2D_array(center=center, M=8, phi0=0, radius=radius)
+        # 上側のマイクロホンを削除
+        mic_positions = np.delete(mic_positions, np.where(mic_positions[1] > center[1]), axis=1)
+        # 新しい座標を既存の配列に追加
+        new_points = np.array([
+            [center[0] - radius / 2, center[1]],
+            center,
+            [center[0] + radius / 2, center[1]],
+            [center[0], center[1] - radius / 2],
+        ]).T
+        mic_positions = np.concatenate((mic_positions, new_points), axis=1)
+        return mic_positions
 
     def _adjust_source_positions(self, center):
         num_sources = self.n_sound

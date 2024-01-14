@@ -66,7 +66,7 @@ class Room:
             x_rand = np.random.rand(n_max) * (max_interval - min_interval) + min_interval
             x_rand = x_max - np.cumsum(x_rand)
             x_rand = x_rand[x_rand >= x_min + min_interval]
-            y_rand = np.random.rand(len(x_rand)) * max_interval * 0.5
+            y_rand = np.random.rand(len(x_rand)) * max_interval * 0.5 - max_interval * 0.25
             new_corners = np.vstack([x_rand, y_rand]).T
 
         new_corners = np.vstack([corners, new_corners])
