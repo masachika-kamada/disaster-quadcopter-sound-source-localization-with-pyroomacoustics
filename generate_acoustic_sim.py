@@ -4,6 +4,7 @@ import math
 import os
 import sys
 
+import numpy as np
 import pyroomacoustics as pra
 from tqdm import tqdm
 
@@ -13,6 +14,7 @@ from src.class_sound import Ambient, AudioLoader, Drone, Voice
 from src.file_io import load_config, write_signal_to_npz
 from src.snr import adjust_snr
 
+np.random.seed(0)
 pra.Room.plot = custom_plot
 
 
@@ -83,7 +85,7 @@ def update_config(
 
 
 def create_output_directory(*args):
-    output_dir = f"experiments/{';'.join(map(str, args))}/simulation"
+    output_dir = f"experiments2/{';'.join(map(str, args))}/simulation"
     os.makedirs(output_dir, exist_ok=True)
     return output_dir
 
@@ -117,12 +119,18 @@ if __name__ == "__main__":
     config = load_config("experiments/config.yaml")
 
     heights = [2, 3, 4, 5]
+    # roughnesses = [[0.1, 1.0]]
+    # materials = ["hard_surface"]
+    # n_voices = [1, 2, 3]
+    # n_ambients = [0]
+    # snr_egos = [11]
+    # snr_ambients = [0]
     roughnesses = [[0.1, 1.0], [0.2, 1.2]]
-    materials = ["hard_surface", "plasterboard", "wooden_lining"]
+    materials = ["hard_surface"]
     n_voices = [1, 2, 3]
     n_ambients = [0, 1, 2]
-    snr_egos = [8, 11, 14]
-    snr_ambients = [-3, 0, 3]
+    snr_egos = [8]
+    snr_ambients = [-3]
 
     params_list = list(itertools.product(
         heights,

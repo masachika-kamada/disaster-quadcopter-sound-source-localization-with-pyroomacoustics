@@ -5,6 +5,8 @@ import pyroomacoustics as pra
 
 from .file_io import load_signal_from_wav
 
+np.random.seed(0)
+
 
 class AudioLoader:
     _x_positions_pool = None
