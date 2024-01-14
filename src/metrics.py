@@ -9,44 +9,26 @@ def export_metrics(output_dir: str, music_spectra: list, ans: dict):
     ans_voice = np.array(ans["voice"])
     ans_ambient = np.array(ans["ambient"]) if "ambient" in ans else []
 
-    # Area Inside a Polar Curve
-    music_spectra /= np.max(music_spectra)
     d_theta = np.pi / 180
-    aipc_lower, aipc_upper = 0, 0
-    for spectrum in music_spectra:
-        aipc_upper += calculate_aipc(spectrum[:180], d_theta)
-        aipc_lower += calculate_aipc(spectrum[180:], d_theta)
-    aipc_lower = round(aipc_lower/ len(music_spectra), 5)
-    aipc_upper = round(aipc_upper/ len(music_spectra), 5)
 
     # Peak
     music_spectra = music_spectra[:, :180]
     music_spectra /= np.max(music_spectra)
     # Initialize variables for metrics
-    TP_voice_3, FN_voice_3, TP_ambient_3, FN_ambient_3, FP_3 = 0, 0, 0, 0, 0
-    TP_voice_5, FN_voice_5, TP_ambient_5, FN_ambient_5, FP_5 = 0, 0, 0, 0, 0
+    TP_voice, FN_voice, TP_ambient, FN_ambient, FP = 0, 0, 0, 0, 0
 
     for spectrum in music_spectra:
         median = np.median(spectrum)
         idx = detect_peaks(spectrum, mph=median, show=False)
 
-        TP_voice, FN_voice, TP_ambient, FN_ambient, FP = \
+        _TP_voice, _FN_voice, _TP_ambient, _FN_ambient, _FP = \
             calculate_evaluation_metrics(ans_voice, ans_ambient, - np.pi + idx * d_theta, 3)
-        TP_voice_3 += TP_voice
-        FN_voice_3 += FN_voice
+        TP_voice += _TP_voice
+        FN_voice += _FN_voice
         if len(ans_ambient) > 0:
-            TP_ambient_3 += TP_ambient
-            FN_ambient_3 += FN_ambient
-        FP_3 += FP
-
-        TP_voice, FN_voice, TP_ambient, FN_ambient, FP = \
-            calculate_evaluation_metrics(ans_voice, ans_ambient, - np.pi + idx * d_theta, 5)
-        TP_voice_5 += TP_voice
-        FN_voice_5 += FN_voice
-        if len(ans_ambient) > 0:
-            TP_ambient_5 += TP_ambient
-            FN_ambient_5 += FN_ambient
-        FP_5 += FP
+            TP_ambient += _TP_ambient
+            FN_ambient += _FN_ambient
+        FP += _FP
 
     # export
     params = output_dir.split("/")[-2].split(";")
@@ -62,44 +44,45 @@ def export_metrics(output_dir: str, music_spectra: list, ans: dict):
         if not is_file_exist or os.path.getsize(csv_file_path) == 0:
             writer.writerow(["height", "roughness", "material", "n_voice", "n_ambient", \
                              "snr_ego", "snr_ambient", "method", \
-                             "aipc_lower", "aipc_upper", \
-                             "TP_voice_3", "FN_voice_3", "TP_ambient_3", "FN_ambient_3", "FP_3", \
-                             "TP_voice_5", "FN_voice_5", "TP_ambient_5", "FN_ambient_5", "FP_5"])
+                             "TP_voice", "FN_voice", "TP_ambient", "FN_ambient", "FP"])
 
         # メトリクスとパラメータを書き込む
-        writer.writerow(params + [method, aipc_lower, aipc_upper, \
-                                  TP_voice_3, FN_voice_3, TP_ambient_3, FN_ambient_3, FP_3, \
-                                  TP_voice_5, FN_voice_5, TP_ambient_5, FN_ambient_5, FP_5])
-
-
-def calculate_aipc(vals: np.ndarray, d_theta: float):
-    """Area Inside a Polar Curve"""
-    return np.sum(vals[:-1] * vals[1:]) * d_theta / 2
+        writer.writerow(params + [method, TP_voice, FN_voice, TP_ambient, FN_ambient, FP])
 
 
 def calculate_evaluation_metrics(true_values_voice, true_values_ambient, predicted_values, tolerance_deg=3):
     tolerance_rad = np.radians(tolerance_deg)
 
-    tv_voice_rec = [False] * len(true_values_voice)
-    tv_ambient_rec = [False] * len(true_values_ambient)
-    pv_rec = [False] * len(predicted_values)
+    tv_voice_used = [False] * len(true_values_voice)
+    tv_ambient_used = [False] * len(true_values_ambient)
+    pv_used = [False] * len(predicted_values)
 
     for i, tv in enumerate(true_values_voice):
         for j, pv in enumerate(predicted_values):
             if tv - tolerance_rad <= pv <= tv + tolerance_rad:
-                tv_voice_rec[i] = True
-                pv_rec[j] = True
+                tv_voice_used[i] = True
+                pv_used[j] = True
 
     for i, tv in enumerate(true_values_ambient):
         for j, pv in enumerate(predicted_values):
             if tv - tolerance_rad <= pv <= tv + tolerance_rad:
-                tv_ambient_rec[i] = True
-                pv_rec[j] = True
+                tv_ambient_used[i] = True
+                pv_used[j] = True
 
-    TP_voice = sum(tv_voice_rec)
-    FN_voice = len(tv_voice_rec) - TP_voice
-    TP_ambient = sum(tv_ambient_rec) if len(tv_ambient_rec) > 0 else None
-    FN_ambient = len(tv_ambient_rec) - TP_ambient if len(tv_ambient_rec) > 0 else None
-    FP = sum([not pv for pv in pv_rec])
+    TP_voice = sum(tv_voice_used)
+    FN_voice = len(tv_voice_used) - TP_voice
+    TP_ambient = sum(tv_ambient_used) if len(tv_ambient_used) > 0 else None
+    FN_ambient = len(tv_ambient_used) - TP_ambient if len(tv_ambient_used) > 0 else None
+    FP = sum([not pv for pv in pv_used])
 
-    return TP_voice, FN_voice, TP_ambient, FN_ambient, FP
+    # # それぞれどの角度で発生したか
+    # rad_TP_voice = [tv for tv, used in zip(true_values_voice, tv_voice_used) if used]
+    # rad_TP_ambient = [tv for tv, used in zip(true_values_ambient, tv_ambient_used) if used] \
+    #     if len(tv_ambient_used) > 0 else None
+    # rad_FN_voice = [tv for tv, used in zip(true_values_voice, tv_voice_used) if not used]
+    # rad_FN_ambient = [tv for tv, used in zip(true_values_ambient, tv_ambient_used) if not used] \
+    #     if len(tv_ambient_used) > 0 else None
+    # rad_FP = [pv for pv, used in zip(predicted_values, pv_used) if not used]
+
+    return TP_voice, FN_voice, TP_ambient, FN_ambient, FP  #, \
+           # rad_TP_voice, rad_TP_ambient, rad_FN_voice, rad_FN_ambient, rad_FP
