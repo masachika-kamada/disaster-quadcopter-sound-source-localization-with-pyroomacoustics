@@ -5,6 +5,7 @@ import pyroomacoustics as pra
 
 class Room:
     def __init__(self, config):
+        np.random.seed(0)
         config_room = config["room"]
         room_dim = config_room["room_dim"]
         corners = np.array([
