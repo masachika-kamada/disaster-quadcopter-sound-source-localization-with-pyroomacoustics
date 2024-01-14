@@ -56,9 +56,12 @@ def play_audio(audio_data: np.ndarray, fs: int) -> None:
     display(Audio(audio_data, rate=fs))
 
 
-def plot_music_spectra(doa, output_dir: str) -> None:
+def plot_music_spectra(doa, output_dir: str, log: bool = False) -> None:
     estimated_angles = doa.grid.azimuth
-    music_spectra = doa.spectra_storage
+    music_spectra = np.array(doa.spectra_storage)
+
+    if log is True:  # 対数変換を適用する
+        music_spectra = np.log10(music_spectra + 1e-6)
 
     for i in range(len(music_spectra)):
         plt.polar(estimated_angles, music_spectra[i], color="blue", alpha=0.2)
@@ -66,7 +69,10 @@ def plot_music_spectra(doa, output_dir: str) -> None:
     plt.title("MUSIC Spectrum (Polar Coordinates)")
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(f"{output_dir}/music_spectrum.png")
+    if output_dir is not None:
+        plt.savefig(f"{output_dir}/music_spectrum.png")
+    else:
+        plt.show()
     plt.close()
 
 
