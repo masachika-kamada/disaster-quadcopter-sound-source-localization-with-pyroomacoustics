@@ -19,8 +19,8 @@ pra.Room.plot = custom_plot
 def calculate_angles(positions, mic_center):
     angles = []
     for position in positions:
-        dx = position[0] - mic_center[0][0]
-        dy = position[1] - mic_center[1][0]
+        dx = position[0] - mic_center[0]
+        dy = position[1] - mic_center[1]
         angles.append(math.atan2(dy, dx))
     return sorted(angles)
 
@@ -66,7 +66,7 @@ def main(config, output_dir):
         # signalがint16でオーバーフローするのでnpzで保存する
         write_signal_to_npz(signal, f"{output_dir}/{name}.npz", room.fs)
 
-    export_ans(room.rooms["source"].mic_array.center, output_dir, voice, ambient)
+    export_ans((0, config["drone"]["mic_positions"]["height"]), output_dir, voice, ambient)
 
 
 def update_config(
