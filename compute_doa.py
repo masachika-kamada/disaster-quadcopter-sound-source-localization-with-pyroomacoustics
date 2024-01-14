@@ -48,7 +48,10 @@ class DoaProcessor:
             else:
                 doa.locate_sources(xs, xn, freq_range=self.args.freq_range, auto_identify=True)
 
-        plot_music_spectra(doa, output_dir=output_dir)
+        highlight_angles = []
+        for key in self.ans.keys():
+            highlight_angles += self.ans[key]
+        plot_music_spectra(doa, output_dir=output_dir, highlight_angles=highlight_angles)
         np.save(f"{output_dir}/decomposed_values.npy", np.array(doa.decomposed_values_strage))
         np.save(f"{output_dir}/decomposed_vectors.npy", np.array(doa.decomposed_vectors_strage))
         np.save(f"{output_dir}/spectra.npy", np.array(doa.spectra_storage))
