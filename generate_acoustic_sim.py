@@ -126,15 +126,16 @@ if __name__ == "__main__":
     snr_egos = [8, 11, 14]
     snr_ambients = [-3, 0, 3]
 
-    params_list = list(itertools.product(
-        heights,
-        roughnesses,
-        materials,
-        n_voices,
-        n_ambients,
-        snr_egos,
-        snr_ambients,
-    ))
+    params_list = [
+        (height, roughness, material, n_voice, n_ambient, snr_ego, snr_ambient)
+        for height in heights
+        for roughness in roughnesses
+        for material in materials
+        for n_voice in n_voices
+        for n_ambient in n_ambients
+        for snr_ego in snr_egos
+        for snr_ambient in ([0] if n_ambient == 0 else snr_ambients)
+    ]
 
     # プログレスバーがアクティブな間、sys.stdoutを上書き
     with tqdm(total=len(params_list)) as pbar:
