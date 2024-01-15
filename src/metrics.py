@@ -13,7 +13,7 @@ def export_metrics(output_dir: str, music_spectra: list, ans: dict):
 
     # Peak
     music_spectra = music_spectra[:, :180]
-    music_spectra /= np.max(music_spectra)
+    # music_spectra /= np.max(music_spectra)
     # Initialize variables for metrics
     TP_voice, FN_voice, TP_ambient, FN_ambient, FP = 0, 0, 0, 0, 0
 
