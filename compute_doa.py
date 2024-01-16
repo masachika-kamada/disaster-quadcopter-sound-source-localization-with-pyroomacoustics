@@ -22,13 +22,37 @@ class DoaProcessor:
         self.frame_length = frame_length
         self.ans = ans
 
+        self.params = {
+            "source_noise_thresh": {
+                "SEVD": 2000,
+                "GEVD_incremental": 2000,
+                "GEVD_ans_dir": 2000,
+                "GEVD_ans_rev": 2000,
+                "GEVD_diff_dir": 5 * 10 ** 12,
+                "GEVD_diff_rev": 5 * 10 ** 12,
+                "GEVD_stable_dir": 4 * 10 ** 3,
+                "GEVD_stable_rev":4 * 10 ** 3
+            },
+            "detect_peaks_thresh": {
+                "SEVD": 4,
+                "GEVD_incremental": 5 * 10 ** 7,
+                "GEVD_ans_dir": 5 * 10 ** 7,
+                "GEVD_ans_rev": 5 * 10 ** 7,
+                "GEVD_diff_dir": 3 * 10 ** 8,
+                "GEVD_diff_rev": 3 * 10 ** 8,
+                "GEVD_stable_dir": 4 * 10 ** 7,
+                "GEVD_stable_rev": 4 * 10 ** 7
+            }
+        }
+
     def process_method(self, method, suffix, X_source, X_ncm):
-        output_dir = f"{self.experiment_dir}/{method}_{suffix}" if method == "GEVD" else f"{self.experiment_dir}/{method}"
+        dirname = f"{method}_{suffix}" if method == "GEVD" else method
+        output_dir = f"{self.experiment_dir}/{dirname}"
         os.makedirs(output_dir, exist_ok=True)
 
         doa = create_doa_object(
             method=method,
-            source_noise_thresh=100,
+            source_noise_thresh=self.params["source_noise_thresh"][dirname],
             mic_positions=self.drone.mic_positions,
             fs=self.fs,
             nfft=self.args.window_size,
@@ -55,7 +79,7 @@ class DoaProcessor:
         np.save(f"{output_dir}/decomposed_values.npy", np.array(doa.decomposed_values_strage))
         np.save(f"{output_dir}/decomposed_vectors.npy", np.array(doa.decomposed_vectors_strage))
         np.save(f"{output_dir}/spectra.npy", np.array(doa.spectra_storage))
-        export_metrics(output_dir, doa.spectra_storage, self.ans)
+        export_metrics(output_dir, doa.spectra_storage, self.ans, self.params["detect_peaks_thresh"][dirname])
 
 
 def main(args, config, experiment_dir):
