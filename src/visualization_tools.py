@@ -66,10 +66,10 @@ def plot_music_spectra(doa, output_dir: str, log: bool = False, highlight_angles
     if highlight_angles is not None:
         max_val = np.max(music_spectra)
         for angle in highlight_angles:
-            plt.polar([angle, angle], [0, max_val], color="red", linestyle="--", linewidth=2)
+            plt.polar([angle, angle], [0, max_val], color="red", linestyle="--", alpha=0.8)
 
     for i in range(len(music_spectra)):
-        plt.polar(estimated_angles, music_spectra[i], color="blue", alpha=0.2)
+        plt.polar(estimated_angles, music_spectra[i], color="blue", alpha=0.3)
 
     plt.title("MUSIC Spectrum (Polar Coordinates)")
     plt.grid(True)
