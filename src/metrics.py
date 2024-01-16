@@ -4,7 +4,7 @@ import os
 from lib.doa import detect_peaks
 
 
-def export_metrics(output_dir: str, music_spectra: list, ans: dict):
+def export_metrics(output_dir: str, music_spectra: list, ans: dict, thresh: float):
     music_spectra = np.array(music_spectra)
     ans_voice = np.array(ans["voice"])
     ans_ambient = np.array(ans["ambient"]) if "ambient" in ans else []
@@ -18,8 +18,7 @@ def export_metrics(output_dir: str, music_spectra: list, ans: dict):
     TP_voice, FN_voice, TP_ambient, FN_ambient, FP = 0, 0, 0, 0, 0
 
     for spectrum in music_spectra:
-        median = np.median(spectrum)
-        idx = detect_peaks(spectrum, mph=median, show=False)
+        idx = detect_peaks(spectrum, mph=thresh, show=False)
 
         _TP_voice, _FN_voice, _TP_ambient, _FN_ambient, _FP = \
             calculate_evaluation_metrics(ans_voice, ans_ambient, - np.pi + idx * d_theta, 3)

@@ -115,8 +115,8 @@ class MUSIC(DOA):
         self.decomposed_values_strage.append(decomposed_values)
         self.decomposed_vectors_strage.append(decomposed_vectors)
 
-        # if auto_identify:
-        #     self.num_src = self._auto_identify(decomposed_values)
+        if auto_identify:
+            self.num_src = self._auto_identify(decomposed_values)
 
         noise_subspace = decomposed_vectors[..., :-self.num_src]
 
@@ -145,18 +145,9 @@ class MUSIC(DOA):
         of the correlation matrix.
         """
         values_max = np.max(decomposed_values, axis=0)
-        # compute the ratio between consecutive decomposed values
-        values_ratio = values_max[1:] / values_max[:-1]
+        decomposed_thresh = np.min(values_max) * self.source_noise_thresh
 
-        print(f"Decomposed values ratio: {values_ratio}")
-        # save the decomposed values ratio
-        # np.savetxt(f"{self.output_dir}/decomposed_values_ratio.txt", values_ratio)
-        self.dval_ratio_strage.append(values_ratio)
-
-        # find the index where the ratio exceeds the threshold or return the last index
-        index = np.argmax(values_ratio > self.source_noise_thresh)
-        num_sources = len(values_ratio) - index if index else len(values_ratio)
-        return num_sources
+        return np.sum(values_max > decomposed_thresh)
 
     def _compute_spatial_spectrum(self, noise_subspace):
         spatial_spectrum = np.zeros((self.num_freq, self.grid.n_points))

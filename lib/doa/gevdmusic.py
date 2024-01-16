@@ -53,8 +53,8 @@ class GevdMUSIC(MUSIC):
         self.decomposed_values_strage.append(decomposed_values)
         self.decomposed_vectors_strage.append(decomposed_vectors)
 
-        # if auto_identify:
-        #     self.num_src = self._auto_identify(decomposed_values)
+        if auto_identify:
+            self.num_src = self._auto_identify(decomposed_values)
 
         noise_subspace = decomposed_vectors[..., :-self.num_src]
 
