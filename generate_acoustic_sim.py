@@ -14,7 +14,7 @@ from src.class_sound import Ambient, AudioLoader, Drone, Voice
 from src.file_io import load_config, write_signal_to_npz
 from src.snr import adjust_snr
 
-np.random.seed(0)
+np.random.seed(1)
 pra.Room.plot = custom_plot
 
 
@@ -61,10 +61,9 @@ def main(config, output_dir):
     start = int(room.fs * config["processing"]["start_time"])
     end = int(room.fs * config["processing"]["end_time"])
 
-    for signal, name in zip(
-        room.simulate(output_dir), ["source", "ncm_rev", "ncm_dir"]
-    ):
-        signal = signal[:, start:end]
+    simulated_signals = room.simulate(output_dir)
+    for name in simulated_signals:
+        signal = simulated_signals[name][:, start:end]
         # signalがint16でオーバーフローするのでnpzで保存する
         write_signal_to_npz(signal, f"{output_dir}/{name}.npz", room.fs)
 

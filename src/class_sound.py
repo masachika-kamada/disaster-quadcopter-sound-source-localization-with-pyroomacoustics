@@ -5,7 +5,7 @@ import pyroomacoustics as pra
 
 from .file_io import load_signal_from_wav
 
-np.random.seed(0)
+np.random.seed(1)
 
 
 class AudioLoader:
@@ -22,6 +22,7 @@ class AudioLoader:
     def get_x_positions(cls, n_sound):
         if cls._x_positions_pool is None or len(cls._x_positions_pool) < n_sound:
             raise ValueError("Not enough x positions available")
+        np.random.seed(1)
         xs = np.random.choice(cls._x_positions_pool, n_sound, replace=False)
         cls._x_positions_pool = [x for x in cls._x_positions_pool if x not in xs]
         return xs
@@ -30,9 +31,8 @@ class AudioLoader:
         self.n_sound = n_sound
         self.signals = []
         source_dir = config["source_dir"]
-        source_files = np.random.choice(
-            glob(f"{source_dir}/*.wav"), n_sound, replace=False
-        )
+        np.random.seed(1)
+        source_files = np.random.choice(glob(f"{source_dir}/*.wav"), n_sound, replace=False)
         for file_path in source_files:
             signal = load_signal_from_wav(file_path, fs)
             self.signals.append(signal)
@@ -47,6 +47,7 @@ class PositionedAudioLoader(AudioLoader):
 
         positions = []
         for x in xs:
+            np.random.seed(1)
             offset = np.random.uniform(0.1, 0.5)
             idx = np.searchsorted(room_x, x, side="right")
             if room_x[idx] == x:

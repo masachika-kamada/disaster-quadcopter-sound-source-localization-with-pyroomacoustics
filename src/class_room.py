@@ -5,7 +5,7 @@ import pyroomacoustics as pra
 
 class Room:
     def __init__(self, config):
-        np.random.seed(0)
+        np.random.seed(1)
         config_room = config["room"]
         room_dim = config_room["room_dim"]
         corners = np.array([
@@ -64,9 +64,11 @@ class Room:
         elif shape == "random":
             min_interval, max_interval = config["roughness"]
             n_max = int((x_max - x_min) // min_interval - 1)
+            np.random.seed(1)
             x_rand = np.random.rand(n_max) * (max_interval - min_interval) + min_interval
             x_rand = x_max - np.cumsum(x_rand)
             x_rand = x_rand[x_rand >= x_min + min_interval]
+            np.random.seed(1)
             y_rand = np.random.rand(len(x_rand)) * max_interval * 0.5 - max_interval * 0.25
             new_corners = np.vstack([x_rand, y_rand]).T
 
@@ -102,13 +104,14 @@ class Room:
                 self.rooms["source"].add_source(position, signal=signal)
 
     def simulate(self, output_dir):
+        simulated_signals = {}
+
         for room_name in ["source", "ncm_rev", "ncm_dir"]:
             self.rooms[room_name].simulate()
+            simulated_signals[room_name] = self.rooms[room_name].mic_array.signals
 
         self.rooms["source"].plot()
         plt.savefig(f"{output_dir}/room.png")
         plt.close()
 
-        return (self.rooms["source"].mic_array.signals,
-                self.rooms["ncm_rev"].mic_array.signals,
-                self.rooms["ncm_dir"].mic_array.signals)
+        return simulated_signals
