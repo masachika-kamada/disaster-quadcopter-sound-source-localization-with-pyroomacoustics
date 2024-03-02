@@ -40,9 +40,10 @@ def modify_audio_volume(input_wav: str, output_wav: Optional[str], volume_delta:
     processedAudio.export(output_wav, format="wav")
 
 
-def scale_signal(signal: np.ndarray) -> np.ndarray:
+def scale_signal(signal: np.ndarray, max_val: float) -> np.ndarray:
     """シグナルをint16の範囲にスケーリングする"""
-    max_val = np.max(np.abs(signal))
+    if max_val == -1:
+        max_val = np.max(np.abs(signal))
     return (signal * (32767 / max_val)).astype(np.int16)
 
 

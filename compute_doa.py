@@ -3,11 +3,12 @@ import json
 import os
 
 import numpy as np
+from scipy.io import wavfile
 from tqdm import tqdm
 
 from lib.custom import create_doa_object, perform_fft_on_frames
 from src.class_sound import Drone
-from src.file_io import load_config, load_signal_from_npz
+from src.file_io import load_config
 from src.metrics import export_metrics
 from src.visualization_tools import plot_music_spectra
 
@@ -87,9 +88,12 @@ def main(args, config, experiment_dir):
     fs = config["pra"]["room"]["fs"]
     drone = Drone(config_drone, fs=fs)
 
-    signal_source, fs = load_signal_from_npz(f"{experiment_dir}/simulation/source.npz")
-    signal_ncm_rev, fs = load_signal_from_npz(f"{experiment_dir}/simulation/ncm_rev.npz")
-    signal_ncm_dir, fs = load_signal_from_npz(f"{experiment_dir}/simulation/ncm_dir.npz")
+    fs, signal_source = wavfile.read(f"{experiment_dir}/simulation/source.wav")
+    signal_source = signal_source.T
+    fs, signal_ncm_rev = wavfile.read(f"{experiment_dir}/simulation/ncm_rev.wav")
+    signal_ncm_rev = signal_ncm_rev.T
+    fs, signal_ncm_dir = wavfile.read(f"{experiment_dir}/simulation/ncm_rev.wav")
+    signal_ncm_dir = signal_ncm_dir.T
 
     with open(f"{experiment_dir}/simulation/ans.json", "r") as f:
         ans = json.load(f)

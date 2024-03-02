@@ -19,8 +19,8 @@ class GevdMUSIC(MUSIC):
         # compute source and noise correlation matrices
         R = self._compute_correlation_matricesvec(X)
         K = self._compute_correlation_matricesvec(X_noise)
-        order = 1e-4  # 初期オーダー
-        max_attempts = 3  # 最大試行回数
+        order = 1e-3  # 初期オーダー
+        max_attempts = 2  # 最大試行回数
         for attempt in range(max_attempts):
             try:
                 if kwargs.get("ncm_diff", False):
