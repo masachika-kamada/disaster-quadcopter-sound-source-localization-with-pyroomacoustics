@@ -1,3 +1,5 @@
+seed: 1
+
 pra:
   room:
     room_dim: [10, 6]  # [x, y]

@@ -86,7 +86,7 @@ class DoaProcessor:
 def main(args, config, experiment_dir):
     config_drone = config["drone"]
     fs = config["pra"]["room"]["fs"]
-    drone = Drone(config_drone, fs=fs)
+    drone = Drone(config_drone, 0, fs=fs)
 
     fs, signal_source = wavfile.read(f"{experiment_dir}/simulation/source.wav")
     signal_source = signal_source.T
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     config = load_config("experiments/config.yaml")
 
-    base_path = "experiments"
+    base_path = "experiments/data"
     experiment_dirs = sorted([d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))])
     for experiment_dir in tqdm(experiment_dirs, desc="Processing experiments"):
         main(args, config, os.path.join(base_path, experiment_dir))

@@ -5,8 +5,6 @@ import pyroomacoustics as pra
 
 from .file_io import load_signal_from_wav
 
-np.random.seed(1)
-
 
 class AudioLoader:
     _x_positions_pool = None
@@ -19,19 +17,19 @@ class AudioLoader:
         cls._x_positions_pool = list(np.arange(min_x + 0.25, max_x - 0.24, step))
 
     @classmethod
-    def get_x_positions(cls, n_sound):
+    def get_x_positions(cls, n_sound, seed):
         if cls._x_positions_pool is None or len(cls._x_positions_pool) < n_sound:
             raise ValueError("Not enough x positions available")
-        np.random.seed(1)
+        np.random.seed(seed)
         xs = np.random.choice(cls._x_positions_pool, n_sound, replace=False)
         cls._x_positions_pool = [x for x in cls._x_positions_pool if x not in xs]
         return xs
 
-    def __init__(self, config, n_sound, fs=16000):
+    def __init__(self, config, n_sound, seed, fs=16000):
         self.n_sound = n_sound
         self.signals = []
         source_dir = config["source_dir"]
-        np.random.seed(1)
+        np.random.seed(seed)
         source_files = np.random.choice(glob(f"{source_dir}/*.wav"), n_sound, replace=False)
         for file_path in source_files:
             signal = load_signal_from_wav(file_path, fs)
@@ -40,14 +38,14 @@ class AudioLoader:
 
 class PositionedAudioLoader(AudioLoader):
     @staticmethod
-    def calculate_positions(room, n_sound):
-        xs = AudioLoader.get_x_positions(n_sound)
+    def calculate_positions(room, n_sound, seed):
+        xs = AudioLoader.get_x_positions(n_sound, seed)
         room_x = np.append(room.corners[0][3:], room.corners[0][0])[::-1]
         room_y = np.append(room.corners[1][3:], room.corners[1][0])[::-1]
 
         positions = []
         for x in xs:
-            np.random.seed(1)
+            np.random.seed(seed)
             offset = np.random.uniform(0.1, 0.5)
             idx = np.searchsorted(room_x, x, side="right")
             if room_x[idx] == x:
@@ -63,21 +61,21 @@ class PositionedAudioLoader(AudioLoader):
 
 
 class Voice(PositionedAudioLoader):
-    def __init__(self, config, n_sound, fs, room):
-        super().__init__(config, n_sound, fs)
-        self.positions = self.calculate_positions(room, n_sound)
+    def __init__(self, config, n_sound, seed, fs, room):
+        super().__init__(config, n_sound, seed, fs)
+        self.positions = self.calculate_positions(room, n_sound, seed)
 
 
 class Ambient(PositionedAudioLoader):
-    def __init__(self, config, n_sound, fs, room):
-        super().__init__(config, n_sound, fs)
+    def __init__(self, config, n_sound, seed, fs, room):
+        super().__init__(config, n_sound, seed, fs)
         self.snr = config["snr"]
-        self.positions = self.calculate_positions(room, n_sound)
+        self.positions = self.calculate_positions(room, n_sound, seed)
 
 
 class Drone(AudioLoader):
-    def __init__(self, config, fs):
-        super().__init__(config, 4, fs)
+    def __init__(self, config, seed, fs):
+        super().__init__(config, 4, seed, fs)
         config_mic_positions = config["mic_positions"]
         self.mic_positions = self._create_mic_positions(config_mic_positions)
         config_propeller = config.get("propeller", {})

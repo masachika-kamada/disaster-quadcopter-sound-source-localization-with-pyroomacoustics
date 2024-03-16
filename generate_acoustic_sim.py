@@ -1,4 +1,3 @@
-import itertools
 import json
 import math
 import os
@@ -14,7 +13,6 @@ from src.class_sound import Ambient, AudioLoader, Drone, Voice
 from src.file_io import load_config, write_signal_to_wav
 from src.snr import adjust_snr
 
-np.random.seed(1)
 pra.Room.plot = custom_plot
 
 
@@ -41,12 +39,12 @@ def export_ans(mic_center, output_dir, voice, ambient):
 
 
 def main(config, output_dir):
-    room = Room(config["pra"])
+    room = Room(config["pra"], config["seed"])
     AudioLoader.initialize_x_positions_pool(room)
-    voice = Voice(config["voice"], config["n_voice"], fs=room.fs, room=room)
-    drone = Drone(config["drone"], fs=room.fs)
+    voice = Voice(config["voice"], config["n_voice"], config["seed"], fs=room.fs, room=room)
+    drone = Drone(config["drone"], config["seed"], fs=room.fs)
     if config["n_ambient"] != 0:
-        ambient = Ambient(config["ambient"], config["n_ambient"], fs=room.fs, room=room)
+        ambient = Ambient(config["ambient"], config["n_ambient"], config["seed"], fs=room.fs, room=room)
     else:
         ambient = None
 
@@ -85,7 +83,7 @@ def update_config(
 
 
 def create_output_directory(*args):
-    output_dir = f"experiments/{';'.join(map(str, args))}/simulation"
+    output_dir = f"experiments/data/{';'.join(map(str, args))}/simulation"
     os.makedirs(output_dir, exist_ok=True)
     return output_dir
 
@@ -117,6 +115,7 @@ def safe_main(config, output_dir, attempt=1):
 
 if __name__ == "__main__":
     config = load_config("experiments/config.yaml")
+    np.random.seed(config["seed"])
 
     heights = [2, 3, 4, 5]
     roughnesses = [[0.1, 1.0], [0.2, 1.2]]

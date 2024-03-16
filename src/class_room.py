@@ -4,8 +4,9 @@ import pyroomacoustics as pra
 
 
 class Room:
-    def __init__(self, config):
-        np.random.seed(1)
+    def __init__(self, config, seed):
+        self.seed = seed
+        np.random.seed(self.seed)
         config_room = config["room"]
         room_dim = config_room["room_dim"]
         corners = np.array([
@@ -64,11 +65,11 @@ class Room:
         elif shape == "random":
             min_interval, max_interval = config["roughness"]
             n_max = int((x_max - x_min) // min_interval - 1)
-            np.random.seed(1)
+            np.random.seed(self.seed)
             x_rand = np.random.rand(n_max) * (max_interval - min_interval) + min_interval
             x_rand = x_max - np.cumsum(x_rand)
             x_rand = x_rand[x_rand >= x_min + min_interval]
-            np.random.seed(1)
+            np.random.seed(self.seed)
             y_rand = np.random.rand(len(x_rand)) * max_interval * 0.5 - max_interval * 0.25
             new_corners = np.vstack([x_rand, y_rand]).T
 
