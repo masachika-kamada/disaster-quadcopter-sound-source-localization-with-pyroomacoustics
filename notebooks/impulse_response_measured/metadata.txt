@@ -1,0 +1,8 @@
+Device: MOTU Pro Audio,
+SampleRate: 44100,
+SamplesPerFrame: 1024,
+Method: Swept Sine,
+NumRuns: 4,
+DurationPerRun: 12.4,
+ExcitationLevel: -6,
+SamplesDropped: 0,
